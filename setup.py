@@ -40,4 +40,3 @@ setup(
     tests_require=['pytest'],
     cmdclass={'test': PyTest},
 )
-
