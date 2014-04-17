@@ -5,11 +5,10 @@ from flask.ext.databrowser.extra_widgets import HtmlSnippet
 
 
 class HtmlSnippetColSpec(ColSpec):
-
     def __init__(self, col_name, template, label=None, doc=None,
                  render_kwargs={}):
         super(HtmlSnippetColSpec, self).__init__(col_name, label=label,
-                                                 doc=doc, formatter=ColSpec._DISABLED_FORMATTER,
+                                                 doc=doc, formatter=lambda v, obj: v,
                                                  render_kwargs=render_kwargs)
         self.template = template
 

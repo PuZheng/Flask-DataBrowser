@@ -3,7 +3,7 @@ from flask.ext.databrowser.pseudo_field import PseudoField
 
 
 class ColSpec(object):
-    _DISABLED_FORMATTER = object()
+
     # tell I am not an input
     as_input = False
     disabled = True
