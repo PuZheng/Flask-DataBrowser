@@ -90,7 +90,9 @@ class PseudoField(fields.Field):
         return self.render_kwargs
 
     def process_data(self, value):
-        self.data = self.formatter(value, self.record)
+        from flask.ext.databrowser.col_spec import ColSpec
+
+        self.data = self.formatter(value, self.record) if self.formatter != ColSpec._DISABLED_FORMATTER else value
 
     def _value(self):
         return self.data

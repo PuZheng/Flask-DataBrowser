@@ -9,7 +9,7 @@ class HtmlSnippetColSpec(ColSpec):
     def __init__(self, col_name, template, label=None, doc=None,
                  render_kwargs={}):
         super(HtmlSnippetColSpec, self).__init__(col_name, label=label,
-                                                 doc=doc,
+                                                 doc=doc, formatter=ColSpec._DISABLED_FORMATTER,
                                                  render_kwargs=render_kwargs)
         self.template = template
 
