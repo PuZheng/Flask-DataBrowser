@@ -27,6 +27,7 @@ from flask.ext.databrowser.exceptions import ValidationError
 from flask.ext.databrowser.form import BaseForm
 from flask.ext.databrowser.constants import (WEB_SERVICE, WEB_PAGE,
                                              BACK_URL_PARAM)
+from flask.ext.databrowser.utils import random_str
 from .stuffed_field import StuffedField
 
 
@@ -56,6 +57,7 @@ class ModelView(object):
     hidden_pk = True
     create_in_steps = False
     step_create_templates = []
+    override_upload_filename = True
 
     class __metaclass__(type):
         def __init__(cls, name, bases, nmspc):
@@ -583,7 +585,7 @@ class ModelView(object):
             kwargs["__data__"] = self._scaffold_list(data)
             kwargs["__object_url__"] = self.url_for_object()
             kwargs["__order_by__"] = lambda col_name: \
-                    self._sortable_column_map[col_name] == order_by
+                self._sortable_column_map[col_name] == order_by
             try:
                 self.try_create()
                 kwargs["__can_create__"] = True
@@ -1163,7 +1165,12 @@ class ModelView(object):
                     save_paths = []
                     for fs in field.data:
                         if fs.filename and fs.filename != '<fdopen>':
-                            filename = secure_filename(fs.filename)
+                            if self.override_upload_filename:
+                                suffix = fs.filename.split('.')[-1] if '.' in \
+                                    fs.filename else ''
+                                filename = random_str(32) + '.' + suffix
+                            else:
+                                filename = secure_filename(fs.filename)
                             save_path = field.save_path
                             if not save_path:
                                 save_path = os.path.join(

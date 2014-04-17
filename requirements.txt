@@ -8,5 +8,4 @@ Flask-Babel>=0.8
 Flask-Login>=0.2.6
 WTForms-Components>=0.8.2
 furl>=0.3.6
--e git+https://github.com/PuZheng/flask-upload2.git@0e7217da3df1373e312272b4268098e6df9ca964#egg=flask_upload2-dev
-
+-e git+https://github.com/PuZheng/flask-upload2.git@5c9531dc6516c425f1bbc9edb54112e5b8766883#egg=flask_upload2-origin/master
