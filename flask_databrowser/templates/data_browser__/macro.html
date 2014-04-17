@@ -1,0 +1,320 @@
+{# bootstrap specific #}
+
+{% macro render_pagination(pagination, __count__, mobile) %}
+  <div class="visible-sm visible-xs">
+    <ul class="pager">
+      {% if not pagination.has_prev %}
+        <li class="disabled previous">
+          <a href="#" title="{{ _("no previous page!") }}">
+            <i class="fa fa-angle-double-left fa-3x"></i>
+          </a>
+        </li>
+      {% else %}
+        <li class="previous">
+          <a href="{{ url_for_other_page(page=pagination.prev_num) }}">
+            <i class="fa fa-angle-double-left fa-3x"></i>
+          </a>
+        </li>
+      {% endif %}
+      <li class="active">
+        <a href="{{ url_for_other_page(page=pagination.page) }}">
+          <span class="fa-2x" style="font-size:31px">{{ pagination.page }}</span>
+        </a>
+      </li>
+      {% if not pagination.has_next %}
+        <li class="disabled next" title="{{ _("no more pages!") }}">
+          <a href="#">
+            <i class="fa fa-angle-double-right fa-3x"></i>
+          </a>
+        </li>
+      {% else %}
+        <li class="next">
+          <a href="{{ url_for_other_page(page=pagination.next_num) }}">
+            <i class="fa fa-angle-double-right fa-3x"></i>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+
+
+  <div class="visible-lg visible-md text-center">
+    <ul class="pagination">
+      {% if not pagination.has_prev %}
+        <li class="disabled previous">
+          <a href="#" title="{{ _("no previous page!") }}">
+            {{ _("prev") }}
+          </a>
+        </li>
+      {% else %}
+        <li class="previous">
+          <a href="{{ url_for_other_page(page=pagination.prev_num) }}">
+            {{ _("prev") }}
+          </a>
+        </li>
+      {% endif %}
+      {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active">
+              <a href="#">{{ page }}</a>
+            </li>
+          {% else %}
+            <li>
+              <a href="{{ url_for_other_page(page=page) }}">{{ page }}</a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="disabled"><a>...</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if __count__ %}
+        <li class="disabled">
+          <a>{{ gettext("totally matched records: %(count)d", count=__count__) }}</a>
+        </li>
+      {% endif %}
+      {% if not pagination.has_next %}
+        <li class="disabled next" title="{{ _("no more pages!") }}">
+          <a href="#">
+            {{ gettext("next") }}
+          </a>
+        </li>
+      {% else %}
+        <li class="next">
+          <a href="{{ url_for_other_page(page=pagination.next_num) }}">
+            {{ gettext("next") }}
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+{% endmacro %}
+
+{% macro render_form_fields(form, focus_set=False, current_step=None) %}
+  {{ form.hidden_tag() if form.hidden_tag is defined }}
+  {% if form.fieldsets|length == 1 and form.fieldsets.has_key('') %}
+    {% set fs_fields = form.fieldsets[''] %}
+    <fieldset>
+      {% if fs_name %}
+        <legend>{% if current_step is not none %}{{ gettext('Step %(step)d', step=current_step + 1) }}
+          : {% endif %}{{ fieldset }}</legend>
+      {% endif %}
+      {% for f in fs_fields if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
+        {{ render_field(f) }}
+      {% endfor %}
+    </fieldset>
+  {% else %}
+    <div class="panel-group" id="accordion_div">
+      {% for fs_name, fs_fields in form.fieldsets.items() %}
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <a class="accordion-toggle" data-toggle="collapse" href="#collapse_{{ loop.index }}">
+                {{ fs_name }}
+                <i class="fa fa-chevron-down" id="collapse_{{ loop.index }}_notation" data-role="fieldset-notation"></i>
+              </a>
+            </h3>
+          </div>
+          <div id="collapse_{{ loop.index }}" class="panel-collapse collapse in" data-role="fieldset-body">
+            <div class="panel-body">
+            {% for f in fs_fields if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
+              {{ render_field(f) }}
+            {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro _render_field_label(field) -%}
+  {% if field.label.text %}
+    <label class="control-label col-lg-2" for="{{ field.id }}">
+      {{ field.label.text }}
+      {% if not field.__read_only__ and field.__required__ %}
+        <strong style="color: red">&#42;</strong>
+      {% else %}
+        &nbsp;
+      {% endif %}
+    </label>
+  {% else %}
+    {% if not field.__read_only__ and field.__required__ %}
+      <strong style="color: red">&#42;</strong>
+    {% else %}
+      &nbsp;
+    {% endif %}
+  {% endif %}
+{%- endmacro %}
+
+{% macro _render_field_input(field) -%}
+  {% if not field.__render_kwargs__.input_width_class %}
+    {% if field.__as_input__ %}
+      {% if field.type == 'FileField' %}
+        {% set input_width_class = 'col-lg-6' %}
+      {% else %}
+        {% set input_width_class = 'col-lg-3' %}
+      {% endif %}
+    {% elif field.label.text %}
+      {% set input_width_class = 'col-lg-3' %}
+    {% else %}
+      {% set input_width_class = 'col-lg-3' %}
+    {% endif %}
+  {% endif %}
+  <div class="{{ input_width_class }}">
+    {% if in_batch_mode %}
+      {% if field.type == 'BooleanField' %}
+        <div class="checkbox"> 
+          {{ field(disabled=True)|safe }}
+        </div>
+      {% else %}
+        {% if field.__unique__ %}
+          {{ field(disabled=True, class='form-control-static', 
+          value=_("unique field, can't be modified"))|safe }}
+        {% else %}
+          {{ field(disabled=True, class='form-control-static')|safe }}
+        {% endif %}
+      {% endif %}
+      {% if not __read_only__ and not field.__unique__ and not field.__read_only__ %}
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" data-role="hold_value" name="hold-value-{{ field.name }}" checked="checked">
+            {{ _("keep unchanged") }}
+          </label>
+        </div>
+      {% endif %}
+    {% else %}
+      {% if field.type == 'BooleanField' %}
+        <div class="checkbox"> 
+          {{ field()|safe }}
+        </div>
+      {% else %}
+        {{ field(class='form-control' if field.__as_input__ else 'form-control-static')|safe }}
+      {% endif %}
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro _render_afflicated_create_url(field) -%}
+  {% if not __read_only__ and field.create_url %}
+    <a href="{{ field.create_url }}" data-role="new-related-obj" data-target="{{ field.name }}" class="btn btn-primary">{{ _("create") }}</a>
+  {% endif %}
+{%- endmacro %}
+
+{% macro _render_field_desc(field) %}
+  {% if field.description %}
+    <span class="help-block">* <i class="text-info">{{ field.description }}</i></span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro _render_field_error(field) -%}
+  {% if field.errors %}
+    <div class="alert alert-danger">{{ field.errors|join("; ") }}</div>
+  {% endif %}
+{%- endmacro %}
+
+{# accepted render kwargs include:
+  * input_width_class
+  * css_class
+#}
+{% macro render_field(field) -%}
+  <div class="form-group{{ ' error' if field.errors }} {{ field.__render_kwargs__.css_class }}">
+    {{ _render_field_label(field) }}
+    {{ _render_field_input(field) }}
+    {{ _render_field_error(field) }}
+    {{ _render_afflicated_create_url(field) }}
+    {{ _render_field_desc(field) }}
+  </div>
+{%- endmacro %}
+
+
+{% macro create() -%}
+  <button name="__builtin_action__" type="submit" class="btn btn-default">{{ _('add another') }}</button>
+{%- endmacro %}
+
+{% macro render_form_buttons(cancel_url, extra=None, last_step=None, next_step=None) %}
+  {% if last_step or next_step %}
+    <div class='row'>
+      <div class="col-lg-6">
+        {% if last_step %}
+          <div class='pull-left'>
+            <a href="{{ last_step.url }}" class='btn btn-default'>
+              <i class="fa fa-step-backward"></i>&nbsp;{{ _('Last step') }}: {{ last_step.name }}
+            </a>
+          </div>
+        {% elif last_step is defined and last_step is not none or (next_step is defined and next_step is not none) %}
+          <a class="btn btn-default" href='{{ cancel_url }}'>{{ _('back') }}</a>
+        {% endif %}
+        {% if next_step %}
+          <div class='pull-right'>
+            <button data-target="{{ next_step.url }}" class='btn btn-default' data-role='next-step' type="button">{{ _('Next step') }}: {{ next_step.name }}
+              <i class="fa fa-step-forward"></i></button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+  <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse" id="footer-action-bar" role="navigation">
+    <div>
+      {% if g.request_from_mobile and not next_step %}
+        <ul class="nav navbar-nav" id="actions">
+          <button id="submit-btn" name="__builtin_action__" type="submit" class="btn btn-primary btn-lg navbar-btn" >{{ _('commit') }}</button>
+          <button id="reset-btn" type="reset" class="btn btn-danger btn-lg navbar-btn">{{ _('reset') }}</button>
+          {% if cancel_url %}
+            <a id="close-btn" class="btn navbar-btn btn-default btn-lg" href="{{ cancel_url }}">{{ _("back") }}</a>
+          {% endif %}
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <div class="dropup btn-group">
+            <button class="btn dropdown-toggle navbar-btn" data-toggle="dropdown" type="button">
+              <i class="fa fa-reorder fa-2x"></i>
+            </button>
+            <ul class="dropdown-menu pull-right" role="menu">
+              {% for action in actions %}
+                <li>
+                  <button type="submit" name="__action__" class="{{ action.css_class }}" data-warn="{{ action.warn_msg }}" data-direct="{{ action.direct }}" value="{{ action.name }}">{{ action.name }}</button>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </ul>
+      {% else %}
+        {% if next_step is undefined or next_step is none %}
+          <div data-role="trivial-control-group">
+            {% if not __read_only__ %}
+              <button id="submit-btn" type='submit' name="__builtin_action__" class="btn btn-primary">{{ _('commit') }}</button>
+              <button id="reset-btn" type="reset" class="btn btn-danger">{{ _('reset') }}</button>
+            {% endif %}
+            {% if cancel_url %}
+              <a id='close-btn' href="{{ cancel_url }}" class="btn btn-default">{{ _('back') }}</a>
+            {% endif %}
+          </div>
+          {% if extra =="create" or actions %}
+            <div data-role="customized-control-group">
+              {% if extra == "create" %}
+                {{ create() }}
+              {% else %}
+                {% for action in actions %}
+                  <button name="__action__" type="submit" name="action" class="{{ action.css_class }}" data-direct="{{ action.direct }}" value="{{ action.name }}">{{ action.name }}</button>
+                {% endfor %}
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro render_form(form, cancel_url, extra=None, last_step=None, next_step=None, previous_steps_info=None) -%}
+  <form action="" method="POST" class="form-horizontal" role="form"
+      {% if form.has_file_field %} enctype="multipart/form-data"{% endif %}>
+    {% if last_step is not none or next_step is not none %}
+      {% set current_step = request.args.get('__step__', 0)|int %}
+    {% else %}
+      {% set current_step = None %}
+    {% endif %}
+    {{ render_form_fields(form, current_step=current_step) }}
+    {{ render_form_buttons(cancel_url, extra, last_step, next_step) }}
+  </form>
+{% endmacro %}

@@ -1,0 +1,174 @@
+{% extends "data_browser__/layout.html" %}
+{% import 'data_browser__/macro.html' as lib with context %}
+
+{% block body %}
+  {% block __data_browser__hint_block %}
+    {% if hint_message or help_message %}
+      <div class="alert {{ 'alert-warning' if __read_only__ else 'alert-info' }}">
+        * {{ hint_message }}
+        {% if help_message %}
+          <div class="pull-right">
+            <a href="#help-modal" data-toggle="modal">
+              <strong class="text-success">{{ _("help") }}</strong>
+              <i class="fa fa-question-circle"></i>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endblock %}
+
+  <div class="container">
+    {{ lib.render_form(form, return_url, extra, last_step, next_step, previous_steps_info) }}
+
+    {% if help_message %}
+      <div id="help-modal" class="modal fade" role="dialog" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h3 class="modal-title">{{ _("Help") }}</h3></div>
+            <div class="modal-body">
+              {{ help_message|safe }}</div>
+            <div class="modal-footer">
+              <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">{{ _("close") }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+{% endblock %}
+
+{% block __data_browser__builtin_head_block %}
+  <script src="{{ url_for('data_browser__.static', filename='js/jsuri-1.1.1.min.js') }}"></script>
+
+  <script type="text/javascript">
+    $(function () {
+      {% if request.args.get('on_fly') %}
+      $("#close-btn").click(function () {
+          window.close();
+        })
+      {% endif %}
+      {% if grouper_info %}
+        grouper_info = {{ grouper_info|tojson|safe }};
+        for (var grouper_name in grouper_info) {
+          var grouper_e = $('[name="' + grouper_name + '"]');
+          var input_e = $('[name="' + grouper_name.split(".")[0] + '"]');
+
+          // remove empty group option
+          grouper_e.children().each(function (idx) {
+            if (!($(this).val() in grouper_info[grouper_name])) {
+              $(this).remove();
+            }
+          });
+          grouper_e.change((function (grouper_e, input_e) {
+            return function (ui) {
+              input_e.empty();
+              $.each(grouper_info[grouper_e.attr("name")][grouper_e.val()], function (idx, entry) {
+                input_e.append('<option value="' + entry.id + '">' + entry.text + "</option>");
+              });
+              input_e.select2({width: "resolve"})
+            }
+          })(grouper_e, input_e))
+        }{% endif %}
+      $("button[name='__action__']").click(function (ui) {
+        if ($(this).attr("data-direct") == "True") {
+          return true;
+        }
+        {% if in_batch_mode %}
+          return confirm(sprintf("{{ _('Are you sure to %%s these items?') }}", $(this).attr("value")));
+        {% else %}
+          return confirm(sprintf("{{ _('Are you sure to %%s this item?') }}", $(this).attr("value")));
+        {% endif %}
+      });
+      setTimeout(function () {
+        $("#flash").fadeOut("slow")
+      }, 3000);
+      $("button[type=reset]").click(function () {
+        $(this).parents('form')[0].reset();
+        $("[data-role=hold_value]").trigger("change");
+        $("select").trigger("change");
+        return false;
+      });
+      $("a[data-role=new-related-obj]").click(function () {
+        var uri = new Uri($(this).attr("href"));
+        var back_uri = new Uri(window.location.toString());
+        var params = $("form").serializeArray();
+        for ( var i in params ) {
+          if (params[i].name != "csrf_token") {
+            back_uri.replaceQueryParam(params[i].name, encodeURIComponent(params[i].value));
+          }
+        }
+        uri.addQueryParam("__back_url__", encodeURIComponent(back_uri.toString()));
+        $(this).attr("href", uri.toString());
+        var win = window.open($(this).attr("href"), $(this).attr('data-target'));
+        win.focus();
+        return false;
+      });
+      $("[data-role=hold_value]").bind("select change", function () {
+        var parent = $(this).parents(".checkbox").parent("div");
+        var target = parent.children("input").not($(this));
+        if (target.length == 0) {
+          target = parent.children("select").not($(this));
+          if (target.length == 0) {
+            // this is a checkbox under div.checkbox
+            target = parent.children(".checkbox").children("[type='checkbox']");
+            if (this.checked) {
+              target.parent("div").children("i").addClass("disabled");
+            } else {
+              target.parent("div").children("i").removeClass("disabled");
+            }
+          } else {
+            // this is a select
+            if (this.checked) {
+              target.select2("disable");
+            } else {
+              target.select2("enable").attr("disabled", false);
+            }
+          }
+        }
+        target.attr("disabled", this.checked);
+      });
+      {% if g.request_from_mobile %}
+        $("input[type=checkbox]").bind("select", function () {
+          var tar = $(this).prev("li");
+          if (tar.length == 0) {
+            tar = tar.parent("div").children("li");
+          }
+          if ($(this).is(":checked")) {
+            tar.removeClass("fa-square-o").addClass("fa-check-square-o");
+          } else {
+            tar.removeClass("fa-check-square-o").addClass("fa-square-o");
+          }
+        });
+      {% endif %}
+      var checkSubmitFlag = false;
+      $("form").submit(function () {
+        if (checkSubmitFlag) {
+          return false;
+        } else {
+          checkSubmitFlag = true;
+          $(this).submit();
+        }
+      });
+      $('button[data-role="next-step"]').click(function () {
+        var target = new Url($(this).attr('data-target'));
+        var inputs = $("form .control-group").find('input,select');
+        for (var i = 0; i < inputs.length; ++i) {
+          var e = inputs[i];
+          if ($(e).attr("name")) {
+            target.query[$(e).attr('name')] = $(e).val();
+          }
+        }
+        var form = $(this).parents('form');
+        if (form.get(0).checkValidity()) {
+          form.attr("action", target.toString());
+          form.submit();
+        }
+      });
+    });
+  </script>
+{% endblock %}
+

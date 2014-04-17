@@ -1,0 +1,142 @@
+/* Form customizations */
+@media screen {
+    html, body {
+        height: 100%;
+    }
+}
+
+/* Inline forms */
+.fa-inline-field {
+    padding-bottom: 0.5em;
+}
+
+.fa-inline-field-control {
+    float: right;
+}
+
+/* Patch Select2 */
+.select2-results li {
+    min-height: 24px !important;
+}
+
+[data-role="trivial-control-group"] {
+    display: inline-block;
+    border: 3px solid #FFF2A3;
+    padding: 6px;
+    border-radius: 8px;
+}
+
+[data-role="customized-control-group"] {
+    display: inline-block;
+    margin-left: 2em;
+    border: 3px solid #FFF2A3;
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.navbar-fixed-bottom {
+    opacity: 0.8;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.navbar-fixed-bottom div {
+    text-align: center;
+    opacity: 1.0;
+}
+
+legend i[data-role="fieldset-notation"] {
+    vertical-align: middle;
+}
+
+table td .accordion-inner {
+    padding: 0;
+    text-align: center;
+}
+
+#main-form .checkbox {
+    margin-bottom: 0;
+}
+
+body {
+    padding-top: 10px;
+    padding-bottom: 70px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/*#main-form .nav-stacked li {*/
+/*border: 1px solid #DDDDDD;*/
+/*padding: 15px 5px;*/
+/*}*/
+
+#main-form .navbar-fixed-bottom {
+    text-align: center;
+}
+
+
+#list-table-body {
+    min-width: 60%;
+}
+
+#list-table-body.list-group a.list-group-item {
+    font-size: 1.5em;
+    text-decoration: none;
+    padding: 0;
+}
+
+#list-table-body i.fa-lg {
+    padding: 20px;
+    display: inline-block;
+}
+
+#footer-action-bar {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+@media only screen and (max-width: 400px) {
+    #footer-action-bar {
+        position: fixed;
+    }
+}
+
+#footer-action-bar .navbar {
+    margin-bottom: 0;
+}
+
+#footer-action-bar .collapse {
+    text-align: right;
+    margin-bottom: 0;
+}
+
+#footer-action-bar .dropdown-menu {
+    margin: 0;
+    padding: 0;
+}
+
+#footer-action-bar .dropdown-menu li, #footer-action-bar .dropdown-menu li button {
+    width: 100%;
+}
+
+#footer-action-bar .dropdown-menu li button {
+    border: 1px solid #ecf0f1;
+}
+
+#create-btn {
+    margin-bottom: 5px;
+}
+
+
+.fa-square-o, .fa-check-square-o {
+    cursor: pointer;
+}
+
+.checkbox .disabled{
+    cursor: not-allowed;
+    color: #808080;
+}
+
+.form-group a.form-control-static{
+    display: inline-block;
+}
