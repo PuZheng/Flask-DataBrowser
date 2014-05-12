@@ -38,10 +38,10 @@ class Image(object):
             kwargs["class"] = "img-responsive"
         # TODO shrink using class, and proportinalize
         if self.size_type == Image.SMALL:
-            kwargs['style'] = 'width: 128px; height: 128px'
+            kwargs['style'] = 'max-width: 128px; max-height: 128px'
         elif self.size_type == Image.NORMAL:
-            kwargs['style'] = 'width: 256px; height: 256px'
-        html = ('<a href="%s" class="fancybox control-text" rel="group"'
+            kwargs['style'] = 'max-width: 256px; max-height: 256px'
+        html = ('<a href="%s" class="fancybox thumbnail" rel="group"'
                 'title="%s"><img  %s /></a>')
 
         # why do this? force browser to refresh the images
