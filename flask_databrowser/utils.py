@@ -10,7 +10,6 @@ from flask import request, url_for
 from jinja2 import Markup
 from wtforms import widgets
 from wtforms.validators import Required
-from wtforms_components import Unique
 
 
 def wrap_form_field(field, create_url=None):
@@ -55,13 +54,6 @@ def wrap_form_field(field, create_url=None):
             if hasattr(self, "validators"):
                 for validator in self.validators:
                     if isinstance(validator, Required):
-                        return True
-            return False
-
-        def is_unique(self):
-            if hasattr(self, "validators"):
-                for validator in self.validators:
-                    if isinstance(validator, Unique):
                         return True
             return False
 
